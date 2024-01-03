@@ -14,14 +14,16 @@ try {
         TERMINAL_ID,
         ['payment_intent' => $paymentIntentId]
     );
-
+    print_r($terminal);
     // Present the payment method to the reader
     $stripe->testHelpers->terminal->readers->presentPaymentMethod(TERMINAL_ID, []);
 
     // Capture the payment
     $data =  $stripe->paymentIntents->capture($paymentIntentId, []);
+    $paymentIntents =  $stripe->paymentIntents->retrieve($paymentIntentId);
 
-    // Respond with a JSON-encoded success message  
+    $charge =  $stripe->charges->retrieve($paymentIntents->latest_charge);
+    print_r($charge);
     header('Content-Type: application/json');
     echo json_encode(['success' => true, 'paymentIntentId' => $paymentIntentId, 'data' => $data]);
 } catch (\Exception $e) {
@@ -29,7 +31,5 @@ try {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-
-
 
 ?>
