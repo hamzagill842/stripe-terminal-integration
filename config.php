@@ -1,5 +1,0 @@
-<?php
-const TERMINAL_ID = "tmr_FYV4wHaqwgv1Ds";
-const STRIPE_KEY = "sk_test_51MUb7cANWK9Qoslv7FBDdqXEAc3g8aMuCoXV5BPaf2SXOM2fStwB9tkFQZAy3wO856wOSJvKcW0IxfPyvWZPAG3s00WKURaSFL";
-
-?>

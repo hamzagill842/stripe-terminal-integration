@@ -12,7 +12,7 @@ try {
     $stripe = new \Stripe\StripeClient(STRIPE_KEY);
 
     $intent = $stripe->paymentIntents->create([
-        'currency' => 'usd',
+        'currency' => 'cad',
         'payment_method_types' => ['card_present'],
         'capture_method' => 'manual',
         'amount' => $amount,
@@ -26,7 +26,6 @@ try {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-
 
 ?>
 

@@ -8,22 +8,37 @@ try {
     $paymentIntentId = $data['paymentIntentId'];
 
     $stripe = new \Stripe\StripeClient(STRIPE_KEY);
-
-    // Correct terminal reader ID
     $terminal = $stripe->terminal->readers->processPaymentIntent(
         TERMINAL_ID,
         ['payment_intent' => $paymentIntentId]
     );
-    print_r($terminal);
-    // Present the payment method to the reader
-    $stripe->testHelpers->terminal->readers->presentPaymentMethod(TERMINAL_ID, []);
+
+    $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId, []);
+    $maxAttempts = 5;
+    $attempts = 0;
+        $stripe->testHelpers->terminal->readers->presentPaymentMethod(TERMINAL_ID, []);
+    while ($paymentIntent->status !== 'requires_capture' && $attempts < $maxAttempts) {
+        // Add a delay to avoid making too many API requests in a short time
+        sleep(10);
+
+        // Retrieve the PaymentIntent again to check its status
+        $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId, []);
+
+        $attempts++;
+
+        if ($attempts >= $maxAttempts) {
+            // If the maximum number of attempts is reached, terminate the script
+            $paymentIntent->cancel();
+            $stripe->terminal->readers->cancelAction(TERMINAL_ID, []);
+            http_response_code(500);
+            echo json_encode(['status' => 'failed', 'redirectUrl' => $domain.'/Stripe.php']);
+            exit;
+        }
+    }
 
     // Capture the payment
     $data =  $stripe->paymentIntents->capture($paymentIntentId, []);
-    $paymentIntents =  $stripe->paymentIntents->retrieve($paymentIntentId);
 
-    $charge =  $stripe->charges->retrieve($paymentIntents->latest_charge);
-    print_r($charge);
     header('Content-Type: application/json');
     echo json_encode(['success' => true, 'paymentIntentId' => $paymentIntentId, 'data' => $data]);
 } catch (\Exception $e) {
